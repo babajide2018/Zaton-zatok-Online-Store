@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="author" content="irstheme">
 
-    <title> ZATON - ZADOK </title>
+    <title> ZATON - ZATOK </title>
 
     <link href="assets/css/themify-icons.css" rel="stylesheet">
     <link href="assets/css/icomoon.css" rel="stylesheet">

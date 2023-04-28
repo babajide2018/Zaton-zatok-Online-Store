@@ -2509,6 +2509,18 @@ button:active {
 .header-style-1 .navbar-header img, .header-style-4 .navbar-header img {
   max-width: 400px;
 }
+
+@media screen and (max-width: 740px) {
+    /* CSS styles for screens with a maximum width of 740px or less */
+    .header-style-1 .navbar-header img, .header-style-4 .navbar-header img {
+        max-width: 200px;
+        width: auto;
+
+    }
+    /* Add more styles here */
+}
+
+
 .header-style-1 .navbar-header .navbar-brand, .header-style-4 .navbar-header .navbar-brand {
   margin: 0;
   padding: 0;
