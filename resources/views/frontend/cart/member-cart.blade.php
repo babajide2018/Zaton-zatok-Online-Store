@@ -155,9 +155,21 @@
     <section class="cart-section woocommerce-cart section-padding">
         <div class="container-1410">
             <div class="row">
+                @if ($message = Session::get('success'))
+                    <div class="alert alert-success alert-block">
+                        <button type="button" class="close" data-dismiss="alert">×</button>
+                        <strong>{{ $message }}</strong>
+                    </div>
+                @endif
+                @if ($message = Session::get('error'))
+                    <div class="alert alert-danger alert-block">
+                        <button type="button" class="close" data-dismiss="alert">×</button>
+                        <strong>{{ $message }}</strong>
+                    </div>
+                @endif
                 <div class="col col-xs-12">
                     <div class="woocommerce">
-                        <form action="{{ route('update-cart') }}" method="post">
+                        <form action="{{ route('update-cart') }}" method="POST" data-form="update-cart">
                             @csrf
                             <table class="shop_table shop_table_responsive cart">
                                 <thead>
@@ -173,9 +185,28 @@
                                 <tbody>
                                 @forelse($carts as $cart)
                                     <tr class="cart_item">
-                                        <input type="hidden" name="cart[{{ $cart->id }}][id]" value="{{ $cart->id }}">
+
                                         <td class="product-remove">
-                                            <a href="#" class="remove" title="Remove this item" data-product_id="{{ $cart->id }}" data-product_sku="{{ $cart->product_name }}">&times;</a>
+                                            <form action="{{route('remove-from-cart')}}">
+                                                @csrf
+                                                <input type="hidden" name="product_id" value="{{$cart->id}}">
+                                                <button type="submit" class="remove-btn">
+                                                    <a  class="remove" title="Remove this item" data-product_sku="">&times;</a>
+                                                </button>
+                                            </form>
+
+                                            <style>
+                                                .remove-btn {
+                                                    border: none;
+                                                    background-color: transparent;
+                                                    padding: 0;
+                                                    margin: 0;
+                                                    cursor: pointer;
+                                                }
+                                                .remove-btn a {
+                                                    display: none;
+                                                }
+                                            </style>
                                         </td>
                                         <td class="product-thumbnail">
                                             <a href="#">
@@ -183,7 +214,7 @@
                                             </a>
                                         </td>
                                         <td class="product-name" data-title="Product">
-                                            <a href="http://localhost/wp/?product=new-product">{{ $cart->product_name }}</a>
+                                            <a href="">{{ $cart->product_name }}</a>
                                         </td>
                                         <td class="product-price" data-title="Price">
                                             <span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">₦ </span>{{ number_format($cart->product_price) }}</span>
@@ -209,22 +240,17 @@
                                         </div>
 
 
-                                        <button type="submit" >Update Cart</button>
+                                            <button type="submit" class="button" name="update_cart" value="{{ __('Update Cart') }}">{{ __('Update Cart') }}</button>
 
 
                                         <input type="hidden" id="_wpnonce" name="_wpnonce" value="918724a9c2" />
                                         <input type="hidden" name="_wp_http_referer" value="/wp/?page_id=5" />
                                     </td>
                                 </tr>
-                                    </form>
                                 </tbody>
                             </table>
                         </form>
-
-
-
                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
                         <script>
                             $(function() {
                                 // Calculate the initial total price
@@ -232,7 +258,8 @@
                                 $('.js-total').each(function() {
                                     totalPrice += parseFloat($(this).text().replace(/[^0-9.-]+/g,""));
                                 });
-                                $('#subtotal').text('₦ ' + totalPrice.toLocaleString());
+                                $('#total').val(totalPrice.toLocaleString()); // set input value
+                                $('#new-form-total').val(totalPrice.toLocaleString()); // set input value for new form
 
                                 // When the quantity input changes
                                 $('.js-quantity').change(function() {
@@ -245,30 +272,31 @@
                                     // Update the total price display
                                     $(this).closest('td').next().find('.js-total').text(newTotal);
 
-                                    // Recalculate the subtotal
+                                    // Recalculate the total
                                     totalPrice = 0;
                                     $('.js-total').each(function() {
                                         totalPrice += parseFloat($(this).text().replace(/[^0-9.-]+/g,""));
                                     });
-                                    $('#subtotal').text('₦ ' + totalPrice.toLocaleString());
+                                    $('#total').val(totalPrice.toLocaleString()); // set input value
+                                    $('#new-form-total').val(totalPrice.toLocaleString()); // set input value for new form
                                 });
                             });
                         </script>
-
-
-
 
                         <div class="cart-collaterals">
                             <div class="cart_totals calculated_shipping">
                                 <h2>Cart Totals</h2>
                                 <table class="shop_table shop_table_responsive">
-                                    <tr class="cart-subtotal">
+                                    <tr class="cart-total">
                                         <th>Total</th>
-                                        <td data-title="Subtotal"><span class="woocommerce-Price-amount amount">
-                                                <span class="woocommerce-Price-currencySymbol" id="subtotal"> </span>
+                                        <td data-title="Subtotal">
+                                            <span class="woocommerce-Price-amount amount">
+                                                <span class="woocommerce-Price-currencySymbol"></span>
+                                                <input type="text" id="total" name="total" readonly> <!-- input field -->
+                                            </span>
                                         </td>
-
                                     </tr>
+
                                     <tr class="shipping">
                                         <th>Shipping</th>
                                         <td data-title="Shipping">
@@ -276,22 +304,28 @@
                                             <input type="hidden" name="shipping_method[0]" data-index="0" id="shipping_method_0" value="free_shipping:1" class="shipping_method" />
                                         </td>
                                     </tr>
-
-
                                 </table>
 
                                 <div class="wc-proceed-to-checkout">
-                                    <a href="http://localhost/wp/?page_id=6" class="checkout-button button alt wc-forward">Proceed to Checkout</a>
+                                        <div class="form-submit">
+                                            <form action="{{route('checkout')}}" >
+                                                @csrf
+                                                <input type="hidden" id="new-form-total" name="new_form_total" readonly>
+                                            <button type="submit">Proceed to Checkout </button>
+                                            </form>
+                                        </div>
                                 </div>
+
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </section>
     <!-- end cart-section -->
-
+    <script src="https://js.paystack.co/v1/inline.js"></script>
 
     <!-- start instagram-section -->
     <section class="instagram-section">

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+require_once app_path('helpers/mini_cart_helper.php');
+
 use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use MongoDB\Driver\Session;
 use Illuminate\Support\Facades\DB;
+
 
 class AdminController extends Controller
 {
@@ -109,33 +112,76 @@ class AdminController extends Controller
     }
 
 
-    public function updateCart(Request $request){
-
+    public function updateCart(Request $request)
+    {
         $cart_items = $request->input('cart');
 
+        $validatedData = $request->validate([
+            'cart.*.qty' => 'required|integer|min:0',
+        ]);
+
         foreach ($cart_items as $id => $item) {
-            // Update the cart item in the database
             Cart::where('id', $id)->update(['quantity' => $item['qty']]);
         }
 
         return redirect()->back()->with('success', 'Cart Updated Successfully');
     }
 
-    public function checkout(){
+    public function checkout(Request $request)
+    {
 
-        return view('frontend.checkout');
+       $total = ($request->new_form_total);
+
+        $miniCartData = getMiniCartProducts();
+
+        $carts = Cart::select(DB::raw('MAX(id) as id'), 'product_name', 'product_price', 'product_image', DB::raw('SUM(quantity) as total_quantity'))
+            ->where('user_id', auth()->user()->id)
+            ->groupBy('product_name', 'product_price', 'product_image')
+            ->get();
+
+        $cart_count = $carts->count(); // use the collection count() method
+
+        /*select last two products*/
+        $mini_cart_products = collect($carts->slice(-2));
+
+        $mini_cart_products = $mini_cart_products->map(function ($item) {
+            if (is_array($item)) {
+                $item = (object) $item;
+            }
+
+            if (is_object($item) && isset($item->product_name)) {
+                return $item;
+            }
+
+            return null;
+        })->filter();
+
+        $mini_cart_products = $mini_cart_products->values();
+
+        return view('frontend.checkout', $miniCartData, ([
+            'carts' => $carts,
+            'total' => $total
+        ]));
     }
 
 
-    public function addProduct(){
 
-        return view('frontend.add-product');
+    public function addProduct(Request $request){
+
+        $miniCartData = getMiniCartProducts();
+        $cart_count = $miniCartData['cart_count'];
+        $mini_cart_products = $miniCartData['mini_cart_products'];
+
+
+        return view('frontend.add-product', ([
+            'cart_count' => $cart_count,
+            'mini_cart_products' => $mini_cart_products
+        ]));
     }
 
     public function uploadProduct(Request $request){
 
         //dd($request->all());
-
         $input['image'] = time() . '.' . $request->image->getClientOriginalExtension();
         $imageName = time() . '.' . $request->image->extension();
         $request->image->move(public_path('images'), $imageName);
@@ -146,6 +192,9 @@ class AdminController extends Controller
         $new_price = $request->new_price;
         $category = $request->category;
         $image = $imageName;
+
+
+
 
         Product::create([
             'category_id' => $category,
@@ -241,34 +290,53 @@ class AdminController extends Controller
             $quantity = $request->quantity;
         }
 
+        //dd($product->quanity);
         /*check if user has the product in cart already*/
 
         $existing_cart = Cart::where('user_id', auth()->user()->id)
             ->where('product_name', $product->name)
             ->first();
 
+
+        //dd($existing_cart->quantity + $quantity);
         if ($existing_cart){
-            dd('Product exist in cart');
+            //dd('Product exist in cart');
+
+            //dd($existing_cart->quantity + $quantity);
+
+            //dd($product->id);
+
+            Cart::where('id', $existing_cart->id)->update([
+                'quantity' => $existing_cart->quantity + $quantity
+            ]);
         }else{
-            dd('Product does not exist in cart');
+            //dd('Product does not exist in cart');
+
+            Cart::create([
+                'user_id' => auth()->user()->id,
+                'product_name' => $product->name,
+                'amount' => $product->new_price,
+                'product_price' => $product->new_price,
+                'quantity' => $quantity,
+                'product_image' => $product->image,
+            ]);
         }
 
 
 
-        Cart::create([
-            'user_id' => auth()->user()->id,
-            'product_name' => $product->name,
-            'amount' => $product->new_price,
-            'product_price' => $product->new_price,
-            'quantity' => $quantity,
-            'product_image' => $product->image,
-        ]);
 
         return response('Product Added To Cart Successfully');
     }
 
 
 
+    public function removeCart(Request $request){
+
+
+        $product = Cart::where('id', $request->product_id)->delete();
+
+        return back()->with('success', 'Product has been removed from cart');
+    }
 
 
     public function viewCart(Request $request){
