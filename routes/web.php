@@ -71,3 +71,7 @@ Route::post('/add-to-cart', [AdminController::class, 'addToCart'])->name('add-to
 /*view guest cart*/
 Route::get('/view-guest-cart', [AdminController::class, 'viewGuestCart'])->name('view-guest-cart');
 Route::get('/view-cart', [AdminController::class, 'viewCart'])->name('view-cart');
+Route::get('/remove-from-cart', [AdminController::class, 'removeCart'])->name('remove-from-cart');
+
+
+Route::get('/checkout', [AdminController::class, 'checkout'])->name('checkout');
