@@ -141,10 +141,11 @@
                 <div class="col col-xs-12">
                     <div class="products-wrapper">
                         <ul class="products product-row-slider">
+                            @foreach($products as $product)
                             <li class="product">
                                 <div class="product-holder">
                                     <div class="product-badge discount">-27%</div>
-                                    <a href="#"><img src="assets/images/shop/img-1.jpg" alt></a>
+                                    <a href="#"><img src="images/{{$product->image}}" alt></a>
                                     <div class="shop-action-wrap">
                                         <ul class="shop-action">
                                             <li><a href="#"  title="Quick view!"><i class="fi flaticon-view"></i></a></li>
@@ -154,16 +155,16 @@
                                     </div>
                                 </div>
                                 <div class="product-info">
-                                    <h4><a href="#">Brogue Men Shoe</a></h4>
+                                    <h4><a href="#">{{$product->name}}</a></h4>
                                     <span class="woocommerce-Price-amount amount">
                                             <ins>
                                                 <span class="woocommerce-Price-amount amount">
-                                                    <bdi><span class="woocommerce-Price-currencySymbol">₦</span>4599</bdi>
+                                                    <bdi><span class="woocommerce-Price-currencySymbol">₦</span>{{$product->new_price}}</bdi>
                                                 </span>
                                             </ins>
                                             <del>
                                                 <span class="woocommerce-Price-amount amount">
-                                                    <bdi><span class="woocommerce-Price-currencySymbol">₦</span>6999</bdi>
+                                                    <bdi><span class="woocommerce-Price-currencySymbol">₦</span>{{$product->old_price}}</bdi>
                                                 </span>
                                             </del>
                                         </span>
@@ -172,13 +173,13 @@
                                     <div class="view-single-product-inner clearfix">
                                         <button class="btn quick-view-single-product-close-btn"><i class="pe-7s-close-circle"></i></button>
                                         <div class="img-holder">
-                                            <img src="assets/images/shop/img-1.jpg" alt>
+                                            <img src="images/{{$product->image}}" alt>
                                         </div>
                                         <div class="product-details">
-                                            <h4>Brogue Men Shoe</h4>
+                                            <h4>{{$product->name}}</h4>
                                             <div class="price">
-                                                <span class="current">₦4599.00</span>
-                                                <span class="old">₦6999.00</span>
+                                                <span class="current">₦ {{$product->new_price}}</span>
+                                                <span class="old">₦ {{$product->old_price}}</span>
                                             </div>
                                             <div class="rating">
                                                 <i class="fi flaticon-star"></i>
@@ -188,7 +189,7 @@
                                                 <i class="fi flaticon-star-social-favorite-middle-full"></i>
                                                 <span>(2 Customer review)</span>
                                             </div>
-                                            <p>Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. He lay on his armour-like back, and if he lifted his head a little he could see his brown belly</p>
+                                            <p>{{$product->description}}</p>
                                             <div class="product-option">
                                                 <form class="form">
                                                     <div class="product-row">
@@ -196,7 +197,18 @@
                                                             <input id="product-count" class="product-count" type="text" value="1" name="product-count">
                                                         </div>
                                                         <div>
-                                                            <button type="submit">Add to cart</button>
+                                                            <form  action="{{route('add-to-cart')}}" class="form" method="post">
+                                                                @csrf
+                                                                <div class="product-row">
+                                                                    <div>
+                                                                        <input type="hidden" name="product_id" value="{{$product->id}}">
+                                                                        <input id="product-count" class="product-count" type="text" placeholder="1" name="quantity">
+                                                                    </div>
+                                                                    <div>
+                                                                        <button type="submit">Add to cart</button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
                                                         </div>
                                                     </div>
                                                 </form>
@@ -218,6 +230,7 @@
                                     </div>
                                 </div> <!-- end quick-view-single-product -->
                             </li>
+                            @endforeach
                         </ul>
                     </div>
                 </div>
