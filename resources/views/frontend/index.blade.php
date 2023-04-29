@@ -774,6 +774,7 @@
                 <div class="img-holder">
                     <img src="assets/images/newsletter.jpg" alt>
                 </div>
+
                 <div class="details">
                     <h4>Get 25% discount shipped to your inbox</h4>
                     <p>Subscribe to the Zango eCommerce newsletter to receive timely updates to your favorite products</p>
